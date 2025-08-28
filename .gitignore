@@ -1,0 +1,5 @@
+venv/
+results/*.png
+*/results/*.png
+__pycache__/
+*.pyc

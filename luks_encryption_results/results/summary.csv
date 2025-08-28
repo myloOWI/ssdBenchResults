@@ -1,0 +1,9 @@
+file,bandwidth_MiB_s,iops
+smallfile_1_job,200.08203125,38.587269
+smallfile_1_job_5g,200.140625,38.286581
+smallfile_2_jobs,200.71484375,39.02988
+smallfile_2_jobs_5g,200.669921875,38.793957
+smallfile_3_jobs,200.9873046875,39.548476
+smallfile_3_jobs_5g,200.9599609375,39.162901
+smallfile_4_jobs,201.0263671875,40.114053
+smallfile_4_jobs_5g,201.0087890625,39.855248
