@@ -7,6 +7,6 @@ if [ ! -d "venv" ]; then
 fi
 source venv/bin/activate
 
-pip install matplotlib
+pip install matplotlib numpy
 
 python analyze_fio_results.py
