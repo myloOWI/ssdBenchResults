@@ -13,10 +13,12 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import csv
 import numpy as np
+import logging
 
 # The repository may be executed from anywhere.  Find all sibling
 # directories ending with ``_results`` relative to this script.
 ROOT = Path(__file__).resolve().parent
+logging.basicConfig(level=logging.INFO, format="%(message)s")
 
 
 def process_results_directory(
@@ -33,8 +35,10 @@ def process_results_directory(
     across runs.
     """
 
+    logging.info("Processing %s", dir_path)
     json_files = sorted(dir_path.glob("*.json"))
     if not json_files:
+        logging.info("No json files found in %s", dir_path)
         return {}
 
     output_dir = dir_path / "results"
@@ -72,6 +76,7 @@ def process_results_directory(
     combined = sorted(
         zip(names, bandwidths, iops_values, cpu_usages), key=lambda x: x[1]
     )
+    logging.info("Sorted entries: %s", [n for n, *_ in combined])
     names, bandwidths, iops_values, cpu_usages = (
         list(t) for t in zip(*combined)
     )
@@ -82,6 +87,7 @@ def process_results_directory(
         writer = csv.writer(csvfile)
         writer.writerow(["file", "bandwidth_MiB_s", "iops", "avg_cpu_percent"])
         writer.writerows(zip(names, bandwidths, iops_values, cpu_usages))
+    logging.info("Wrote %s", output_dir / "summary.csv")
 
     # Create a bandwidth bar chart.
     plt.figure(figsize=(10, 6))
@@ -91,6 +97,7 @@ def process_results_directory(
     plt.title(f"Bandwidth for {dir_path.name}")
     plt.tight_layout()
     plt.savefig(output_dir / "bandwidth.png")
+    logging.info("Saved %s", output_dir / "bandwidth.png")
     plt.close()
 
     # Create an IOPS bar chart.
@@ -101,6 +108,7 @@ def process_results_directory(
     plt.title(f"IOPS for {dir_path.name}")
     plt.tight_layout()
     plt.savefig(output_dir / "iops.png")
+    logging.info("Saved %s", output_dir / "iops.png")
     plt.close()
 
     # Create a CPU usage bar chart.
@@ -111,6 +119,7 @@ def process_results_directory(
     plt.title(f"CPU usage for {dir_path.name}")
     plt.tight_layout()
     plt.savefig(output_dir / "cpu_usage.png")
+    logging.info("Saved %s", output_dir / "cpu_usage.png")
     plt.close()
 
     return data_map
@@ -122,28 +131,33 @@ def aggregate_results(
     """Generate combined graphs comparing all runs side by side."""
 
     if not all_runs:
+        logging.info("No runs found")
         return
 
     output_dir = ROOT / "results"
     output_dir.mkdir(exist_ok=True)
 
-    # Write a summary CSV referencing all raw data.
-    with open(output_dir / "summary.csv", "w", newline="") as csvfile:
-        writer = csv.writer(csvfile)
-        writer.writerow(["file", "run", "bandwidth_MiB_s", "iops", "avg_cpu_percent"])
-        for run, mapping in all_runs.items():
-            for file, (bw, iops, cpu) in mapping.items():
-                writer.writerow([file, run, bw, iops, cpu])
-
     # Prepare data for grouped bar charts.
     runs = sorted(all_runs)
     files_set = {fname for mapping in all_runs.values() for fname in mapping}
+
     # Order file groups by their highest bandwidth to keep charts increasing.
     def file_sort_key(name: str) -> float:
         return max(all_runs[run].get(name, (0, 0, 0))[0] for run in runs)
 
     files = sorted(files_set, key=file_sort_key)
 
+    # Write a sorted summary CSV referencing all raw data.
+    rows = []
+    for run in runs:
+        for file, (bw, iops, cpu) in all_runs[run].items():
+            rows.append((file, run, bw, iops, cpu))
+    rows.sort(key=lambda r: (file_sort_key(r[0]), runs.index(r[1])))
+    with open(output_dir / "summary.csv", "w", newline="") as csvfile:
+        writer = csv.writer(csvfile)
+        writer.writerow(["file", "run", "bandwidth_MiB_s", "iops", "avg_cpu_percent"])
+        writer.writerows(rows)
+    logging.info("Wrote %s", output_dir / "summary.csv")
     bandwidth_matrix = [[all_runs[run].get(f, (0, 0, 0))[0] for f in files] for run in runs]
     iops_matrix = [[all_runs[run].get(f, (0, 0, 0))[1] for f in files] for run in runs]
     cpu_matrix = [[all_runs[run].get(f, (0, 0, 0))[2] for f in files] for run in runs]
@@ -160,6 +174,7 @@ def aggregate_results(
     plt.legend()
     plt.tight_layout()
     plt.savefig(output_dir / "bandwidth.png")
+    logging.info("Saved %s", output_dir / "bandwidth.png")
     plt.close()
 
     plt.figure(figsize=(10, 6))
@@ -171,6 +186,7 @@ def aggregate_results(
     plt.legend()
     plt.tight_layout()
     plt.savefig(output_dir / "iops.png")
+    logging.info("Saved %s", output_dir / "iops.png")
     plt.close()
 
     plt.figure(figsize=(10, 6))
@@ -182,6 +198,7 @@ def aggregate_results(
     plt.legend()
     plt.tight_layout()
     plt.savefig(output_dir / "cpu_usage.png")
+    logging.info("Saved %s", output_dir / "cpu_usage.png")
     plt.close()
 
 

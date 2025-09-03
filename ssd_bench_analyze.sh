@@ -9,4 +9,4 @@ source venv/bin/activate
 
 pip install matplotlib numpy
 
-python analyze_fio_results.py
+python ssd_bench_analyze.py

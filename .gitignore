@@ -1,5 +1,6 @@
+# Generated analysis outputs
+results/
+*_results/results/
+*_results/*.json
+*.png
 venv/
-results/*.png
-*/results/*.png
-__pycache__/
-*.pyc
