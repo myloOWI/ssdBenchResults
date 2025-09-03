@@ -1,6 +1,5 @@
 # Generated analysis outputs
-results/
-*_results/results/
+/results/
 *_results/*.json
 *.png
 venv/

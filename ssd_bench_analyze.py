@@ -203,12 +203,14 @@ def aggregate_results(
 
 
 def main() -> None:
+    logging.info("Starting analysis")
     all_runs: dict[str, dict[str, tuple[float, float, float]]] = {}
     for directory in ROOT.iterdir():
         if directory.is_dir() and directory.name.endswith("_results"):
             all_runs[directory.name] = process_results_directory(directory)
 
     aggregate_results(all_runs)
+    logging.info("Analysis complete")
 
 
 if __name__ == "__main__":

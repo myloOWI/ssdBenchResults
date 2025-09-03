@@ -9,14 +9,14 @@ device=${1:-/home/nvidia/nvme/test_file}
 declare -a sizes=(2G 5G)
 declare -a jobs=(1 2 3 4)
 
+echo "Running SSD benchmark tests on $device"
+
 for size in "${sizes[@]}"; do
   for job in "${jobs[@]}"; do
     echo ">>> Starting ${job} job(s) (${size})..."
     name="smallfile_${job}_jobs"
-    file_suffix=""
     if [ "$size" = "5G" ]; then
       name+="_5g"
-      file_suffix="_5g"
     fi
     fio --name="$name" \
         --filename="$device" \
