@@ -68,6 +68,14 @@ def process_results_directory(
         cpu_usages.append(cpu_usage)
         data_map[jf.stem] = (bw_mib, iops, cpu_usage)
 
+    # Order results by bandwidth so graphs show steadily increasing bars.
+    combined = sorted(
+        zip(names, bandwidths, iops_values, cpu_usages), key=lambda x: x[1]
+    )
+    names, bandwidths, iops_values, cpu_usages = (
+        list(t) for t in zip(*combined)
+    )
+
     # Save a CSV summary so values can be referenced against the original
     # json data.
     with open(output_dir / "summary.csv", "w", newline="") as csvfile:
@@ -128,8 +136,13 @@ def aggregate_results(
                 writer.writerow([file, run, bw, iops, cpu])
 
     # Prepare data for grouped bar charts.
-    files = sorted({fname for mapping in all_runs.values() for fname in mapping})
     runs = sorted(all_runs)
+    files_set = {fname for mapping in all_runs.values() for fname in mapping}
+    # Order file groups by their highest bandwidth to keep charts increasing.
+    def file_sort_key(name: str) -> float:
+        return max(all_runs[run].get(name, (0, 0, 0))[0] for run in runs)
+
+    files = sorted(files_set, key=file_sort_key)
 
     bandwidth_matrix = [[all_runs[run].get(f, (0, 0, 0))[0] for f in files] for run in runs]
     iops_matrix = [[all_runs[run].get(f, (0, 0, 0))[1] for f in files] for run in runs]
